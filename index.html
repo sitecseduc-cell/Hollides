@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador de Férias Profissional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .animated-gradient-background {
+            background: linear-gradient(-45deg, #111827, #1f2937, #374151);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        #resultModal { transition: opacity 0.3s ease-in-out; }
+        #modalContainer { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="text-gray-200 flex items-center justify-center min-h-screen p-4 animated-gradient-background">
+    <div class="w-full max-w-2xl mx-auto">
+        <div class="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-8">
+            <div class="text-center">
+                <div class="flex justify-center items-center mb-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Bras%C3%A3o_do_Par%C3%A1.svg/250px-Bras%C3%A3o_do_Par%C3%A1.svg.png" alt="Brasão do Pará" class="logo" style="width: 70px; height: 70px;">
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 mb-2">Analisador de Férias</h1>
+                <p class="text-gray-400">Insira as informações para uma análise rápida e precisa.</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label for="codigoFuncionario" class="block mb-2 text-sm font-medium text-gray-300">Código do Funcionário:</label>
+                    <input type="text" id="codigoFuncionario" placeholder="Ex: 1001" required class="bg-gray-700/50 border border-gray-600 text-gray-200 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 transition">
+                </div>
+                <div>
+                    <label for="inicioAquisitivo" class="block mb-2 text-sm font-medium text-gray-300">Início do Período Aquisitivo:</label>
+                    <input type="date" id="inicioAquisitivo" required class="bg-gray-700/50 border border-gray-600 text-gray-200 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 transition">
+                </div>
+                <div>
+                    <label for="inicioFerias" class="block mb-2 text-sm font-medium text-gray-300">Data de Início das Férias:</label>
+                    <input type="date" id="inicioFerias" required class="bg-gray-700/50 border border-gray-600 text-gray-200 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 transition">
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="verificarBtn" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-900/50 focus:outline-none focus:ring-4 focus:ring-indigo-500/50 transform hover:-translate-y-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    Verificar
+                </button>
+                <button id="limparBtn" class="w-full flex items-center justify-center gap-2 bg-gray-700 hover:bg-rose-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg focus:outline-none focus:ring-4 focus:ring-rose-500/50 transform hover:-translate-y-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Limpar
+                </button>
+            </div>
+        </div>
+        <footer class="text-center mt-8">
+            <p class="text-sm text-gray-600">© Criado por ISAAC.J.S.B | Desenvolvido por GIULIANO.L.A.F & HENRIQUE.B</p>
+        </footer>
+    </div>
+
+    <div id="resultModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 opacity-0">
+        <div id="modalContainer" class="bg-gray-900 border border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-md transform scale-95 max-h-[90vh] overflow-y-auto relative">
+            <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition z-10">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div id="modalDynamicContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        // --- INÍCIO DO CÓDIGO MODIFICADO ---
+        // A base de dados completa está agora incorporada.
+        const embeddedData = [
+          { "Codigo": 1001, "Atividade": "PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1002, "Atividade": "VIGIA JK", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1003, "Atividade": "ORIENTADOR APRENDIZAGEM/DOCENTE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1004, "Atividade": "COORD TV ESCOLA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1005, "Atividade": "CESSAO POR CONVENIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1006, "Atividade": "PROF INF EDUC ENSIN ESPEC", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1007, "Atividade": "PROF EDUCACAO ESPECIAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1008, "Atividade": "PROF EDUCACAO FISICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1009, "Atividade": "PROF AGUARD APOSENTADORIA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1010, "Atividade": "INSTRUCAO MUSICAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1011, "Atividade": "READAPT CLASSE NORMAL", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1012, "Atividade": "READAPT CLASSE ESPECIAL", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1013, "Atividade": "ORIENTADOR DE PESQUISA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1014, "Atividade": "PROF C/ AFASTAMENTO PREVENT PAD", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1015, "Atividade": "CAPACITACAO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1016, "Atividade": "PROF UM SALTO P/ O FUTURO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1017, "Atividade": "LOT AG CRIACAO DE SETOR PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1018, "Atividade": "MANDAR SERVIR", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1019, "Atividade": "PSICOLOGO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1020, "Atividade": "FONOAUDIOLOGO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1021, "Atividade": "PROF LOTADO NA SEDE EF", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1022, "Atividade": "PROF TID (ED.FISICA)", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1023, "Atividade": "PROF TD (ED.FISICA)", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1024, "Atividade": "PROF THE (ED.FISICA)", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1025, "Atividade": "A DISP COM ONUS SEDUC EF", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1026, "Atividade": "READAPTADO EF", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1027, "Atividade": "PROF INFORMAT EDUCATIVA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1028, "Atividade": "A DISP SEM ONUS SEDUC EF", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1029, "Atividade": "PROF EDUC FISIC E ESPEC", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1030, "Atividade": "TURMA COMP ED FIS ENS ESP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1031, "Atividade": "APOIO ADMINISTRATIVO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1032, "Atividade": "AGUARD APOSENTADORIA ADM", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1033, "Atividade": "AGUARD APOSENT CLASSE ESP", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1034, "Atividade": "MANDATO SINDICAL", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1035, "Atividade": "LOT AG CRIACAO DE SETOR APOIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1036, "Atividade": "TECNICO EM INSPECAO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1037, "Atividade": "COORD CONVENIO VESTIB", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1038, "Atividade": "ACELERACAO APOIO PED 5ª/8ª", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1039, "Atividade": "ACELERACAO APOIO PED 1ª/4ª", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1040, "Atividade": "LIC P/EXERC CARGO ELETIVO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1041, "Atividade": "PROF ENSINO ITINERANTE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1042, "Atividade": "PROF APOIO PEDAG ED ESPEC", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1043, "Atividade": "COORD PROJ ACELERACAO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1044, "Atividade": "PROF. ALUNO PARFOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1045, "Atividade": "REG.SALA LEIT/BIBLIOT EF", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1046, "Atividade": "PROF POLOS ESPORTIVOS", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1047, "Atividade": "PROF PROG PAPO CABECA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1048, "Atividade": "PROJETO INDIGENA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1049, "Atividade": "PROF ED FISIC ENS ESPEC", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1050, "Atividade": "PROFESSOR ASSISTENTE EF", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1051, "Atividade": "PROF PRP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1052, "Atividade": "DEP ESTAGIO SUPERV.", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1053, "Atividade": "PROF AVALIAC EDUCACIONAL", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1054, "Atividade": "MONITOR CRECHE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1055, "Atividade": "AFAST PREVENT PAD APOIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1056, "Atividade": "PROF PROG MOVA PARA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1057, "Atividade": "PROF. DE EDUCACAO DE BASE", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1058, "Atividade": "PROF. DE ENSINO INFORMAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1059, "Atividade": "LICENCA APRIMORAMENTO SEM VANT MAG", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1060, "Atividade": "AG. EFETIVAÇÃO DE REMOÇÃO PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1061, "Atividade": "AG. EFETIVAÇÃO DE REMOÇÃO APOIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1062, "Atividade": "NUTRICIONISTA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1063, "Atividade": "PROF PROINFO/NTE (C/VANT MAG)", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1064, "Atividade": "PROJETOS ESPECIAIS-SAEN", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1065, "Atividade": "TRABALHO DE CAMPO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1066, "Atividade": "LABORATORIO PEDAGOGICO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1067, "Atividade": "LICENCA APRIMORAMENTO COM VANT MAG", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1068, "Atividade": "LICENCA APRIMORAMENTO TEC EM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1069, "Atividade": "EDUCACAO\nSECRET. EDUC.PROFISS.", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1070, "Atividade": "FISIOTERAPEUTA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1071, "Atividade": "AUX. TECNICO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1076, "Atividade": "CARPINTEIRO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1077, "Atividade": "TECNICO AGRICOLA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1078, "Atividade": "TEC EDUC SUSIPE FUNCAP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1079, "Atividade": "CHEFE DE SERVICO GERAIS", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1080, "Atividade": "PROF APOIO SECRETARIA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1081, "Atividade": "PROFESSOR SEDUC/SUSIPE COM VANT MAG", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1082, "Atividade": "COORD VIDEO MESTRE", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1083, "Atividade": "COORD DE NAES", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1084, "Atividade": "COORD.HAB.PROFISSIONALIZ.", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1085, "Atividade": "CESSAO CONVENIO SUSIPE", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1086, "Atividade": "PROF SALA DE RECURSO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1087, "Atividade": "COORDENADOR DO GPADC", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1088, "Atividade": "COORDENADOR DO CPADC", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1089, "Atividade": "PROFESSOR DO GPADC", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1090, "Atividade": "PROFESSOR DO CPADC", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1091, "Atividade": "PROJ. INCENTIVO A MUSICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1092, "Atividade": "PROJ.PLANTANDO O FUTURO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1093, "Atividade": "PROF ATIV PEDAGOGICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1094, "Atividade": "PROJ. OLERICULTURA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1095, "Atividade": "PROJ ARTE BRINCAR/CANTAR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1096, "Atividade": "PROJ ALFAB ADULT ED ESP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1097, "Atividade": "PROJ CRIAC MAT DIDAT/APRE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1098, "Atividade": "PROJ MARCENARIA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1099, "Atividade": "PROJ P/ALUNO BI/TRI REPET", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1100, "Atividade": "APOIO EDUC. PROFISS", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1101, "Atividade": "VIGIA EDUC PROFISS", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1102, "Atividade": "DIRETOR EDUC PROFISS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1103, "Atividade": "PROJ HORTA ESCOLAR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1104, "Atividade": "PROF. ED. PROFISS. REGENC", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1105, "Atividade": "ESTAGIO SUPERVISIONADO ED", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1106, "Atividade": "COORD. ED. PROFISSIONAL", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1107, "Atividade": "PROF PROINFO/NTE'S", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1108, "Atividade": "PROF DA EFA/MARABA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1109, "Atividade": "PROJ EDUCAR/BRINCAR BELEM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1110, "Atividade": "PROJ BRINQUEDOTECA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1111, "Atividade": "PROJ VIDEO MESTRE", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1112, "Atividade": "PROF EM ATIVIDADE PEDAG", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1113, "Atividade": "SALA REC NUC PROD BAILLE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1114, "Atividade": "SALA REC NUC APOIO D PEDA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1115, "Atividade": "SALA REC NUC TECNOLOGIA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1116, "Atividade": "SALA REC NUC CONVIVENCIA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1117, "Atividade": "TUTOR PROGESTAO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1118, "Atividade": "COORDENADOR GEEM", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1119, "Atividade": "PROCEF/PROFAE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1120, "Atividade": "RECOMECAR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1121, "Atividade": "READAPTAÇÃO PROVIS PROF", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1122, "Atividade": "READAPTAÇÃO PROVIS APOIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1123, "Atividade": "LICENÇA SAUDE PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1124, "Atividade": "LICENÇA ESPECIAL PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1125, "Atividade": "LICENÇA SAUDE APOIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1126, "Atividade": "LICENÇA ESPECIAL APOIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1127, "Atividade": "LOTAÇÃO GEEM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1128, "Atividade": "PROFESSOR EX-FEP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1129, "Atividade": "PROF CONVÊNIO FASEPA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1130, "Atividade": "LICENÇA SAUDE MAGISTERIO TECNICO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1131, "Atividade": "COORDENADOR DO PRP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1132, "Atividade": "PROJ INDIG TRAB EXTRA CLASSE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1133, "Atividade": "LICENÇA MATERNIDADE DOCENTE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1134, "Atividade": "LICENÇA MATERNIDADE APOIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1135, "Atividade": "LIC MOT DOENÇA PESS FAM (PROF)", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1136, "Atividade": "LIC MOT DOENÇA PESS FAM (TEC MAG)", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1137, "Atividade": "LIC MOT DOENÇA PESS FAM (APOIO)", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1138, "Atividade": "LIC MATERNIDADE TEC EDUCACAO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1140, "Atividade": "PROJ. XADREZ NA ESCOLA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1141, "Atividade": "PROF DPLAY PARA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1142, "Atividade": "PROF ENEM PARA DIGITAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1145, "Atividade": "PROF. BIBLIOTECA ESCOLAR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1146, "Atividade": "PROF TUTOR/SAEN - FORM CONTINUADA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1147, "Atividade": "PROF.ENS.MÉDIO EJA (", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1148, "Atividade": "FILOSOFIS/SOCIOLOGIA)\nPROF. ENSINO MÉDIO INOVADOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1149, "Atividade": "PROFESSOR ARTICULADOR - EMI/PJF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1150, "Atividade": "PROF.ESCOLA TEMPO INTEGRAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1151, "Atividade": "PROF AGUARD CORRECAO LOT SEM VANT", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1152, "Atividade": "COMPLEMENTACAO PROVISORIA TEMPO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1157, "Atividade": "INTEGRAL\nPROF SOME INDIGENA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1200, "Atividade": "DEP. LING.PORTUGUESA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1201, "Atividade": "DEP.HISTORIA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1202, "Atividade": "DEP.GEOGRAFIA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1203, "Atividade": "DEP.CIENC.FIS.BIOLOGICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1204, "Atividade": "DEP.MATEMATICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1205, "Atividade": "DEP.ED.ARTISTICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1206, "Atividade": "DEP.ENS.RELIGIOSO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1207, "Atividade": "DEP.RED.EXPRESSAO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1208, "Atividade": "DEP.EST.PARAENSES", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1209, "Atividade": "DEP.INGLES", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1210, "Atividade": "DEP.FRANCES", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1211, "Atividade": "DEP QUIMICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1212, "Atividade": "DEP.FISICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1213, "Atividade": "DEP DISC PEDAGOGICAS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1214, "Atividade": "DEP BIOLOG E PROG SAUDE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1215, "Atividade": "DEP LITERATURA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1216, "Atividade": "DEP ESTATISTICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1217, "Atividade": "DEP ADM E CONTROLE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1218, "Atividade": "DEP ORG DE EMPRESA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1219, "Atividade": "DEP FILOSOFIA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1220, "Atividade": "DEP CONTAB E CUSTOS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1221, "Atividade": "DEP SOCIOLOGIA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1222, "Atividade": "DEP DIREITO E LEGISLACAO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1223, "Atividade": "DEP.FUND PROC DADOS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1224, "Atividade": "DEP. ELETRIC E MAGNETISMO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1225, "Atividade": "DEP EDUC FISICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1226, "Atividade": "DEP ARTES", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1227, "Atividade": "DEP. ECON.E MERCADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1228, "Atividade": "DEP. MEC.PROCESS.DADOS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1229, "Atividade": "DEP. CONTAB. COMERCIAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1230, "Atividade": "DEP. CONTAB. GERAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1231, "Atividade": "DEP. ELETRONICA ANALOGICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1232, "Atividade": "DEP. MECANICA SOLOS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1233, "Atividade": "DEP.RESISTENCIA MATERIAIS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1234, "Atividade": "DEP. DESENHO MECANICO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1235, "Atividade": "DEP.TEC PROCESS REDE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1236, "Atividade": "DEP.LING E PROGRAMACAO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1237, "Atividade": "DEP. MENEJO SOLO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1238, "Atividade": "DEP. ZOOTECNIA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1239, "Atividade": "DEP.AGROINDUSTRIA I", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1240, "Atividade": "DEP. SISTEMA OPERACIONAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1241, "Atividade": "DEP. CURSOS TEC. POS-MEDI", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1242, "Atividade": "DEP. ESTUDOS AMAZÔNICO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1245, "Atividade": "PROF SUSIPE LEITURA QUE LIBERTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1300, "Atividade": "PROF. READAP- SALA LEITURA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1313, "Atividade": "PROF NAO LOTADO CRH", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1400, "Atividade": "PROF LIC APRIMORAMENTO C_VANT", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1401, "Atividade": "PROF LIC APRIMORAMENTO S_VANT", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": false },
+          { "Codigo": 1402, "Atividade": "ESP EDUC LIC APRIMORAMENTO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": true, "Atividade de Docência": false },
+          { "Codigo": 1403, "Atividade": "PROF RETORNO L APRIM CVANT FÉRIAS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 1404, "Atividade": "PROF RETORNO L APRIM SVANT FÉRIAS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1405, "Atividade": "ESP. EDUC. RETORNO.LIC APR. FÉRIAS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1406, "Atividade": "PROF NATEE_EDUC ESPEC", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1407, "Atividade": "PROF NAAHS_EDUC ESPEC", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1408, "Atividade": "PROF CAS_EDUC ESPEC", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1409, "Atividade": "PROF. EDUC. ESP. CLASSE HOSPITALAR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1410, "Atividade": "ESP EDUC LIC APRIMORAMENTO S/ F AUT", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1414, "Atividade": "TECNICO EM GESTAO LIC APRIMORAMENTO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 1515, "Atividade": "PROF VOLANTE MATEMATICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 1616, "Atividade": "PROF VOLANTE LINGUA PORTUGUESA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11128, "Atividade": "TERRA\nSERVERTE CRECHE / CONVENIO MUNICIPIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11129, "Atividade": "MERENDEIRA CRECHE / CONVENIO MUNICIPIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11130, "Atividade": "DOCENTE CRECHE / CONVENIO MUNICIPIO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11131, "Atividade": "DIRETOR UTEES ESPECIALISTA EM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11132, "Atividade": "EDUCACAO\nESTAGIO PROJETO APRENDER MAIS", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11133, "Atividade": "PROFESSOR LIBRAS/BRAILE", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11134, "Atividade": "EDUCADOR ACOLHEDOR ADM EJA CAMPO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11135, "Atividade": "MERENDEIRA EJA CAMPO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11136, "Atividade": "PROF COORDENADOR DE TURMA EJA CAMPO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11200, "Atividade": "ESPECIALISTA EM EDUCACAO / SEI", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11210, "Atividade": "DRE - TECNICO REF. TRANSPORTE ESCOLAR PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11211, "Atividade": "DRE- TECNICO REF. POLIT. DE LEITURA- PROF. NORM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11212, "Atividade": "DRE-TECNICO CENSO E MATRICULA - PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11213, "Atividade": "DRE - TECNICO REF. POLÍTICAS DE LEITURA-PROF.", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": null, "Atividade": "NORM", "Grupo Seduc": null, "Adicional de Férias Automático": null, "Atividade de Docência": null },
+          { "Codigo": 11300, "Atividade": "ASSISTENTE ADMINISTRATIVO / SEI", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11301, "Atividade": "DRE - DIRIGENTE-PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11302, "Atividade": "DRE - DIRIGENTE-ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11303, "Atividade": "DRE - DIRIGENTE-PROFESSOR READAPTADO NORMAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11304, "Atividade": "DRE - DIRIGENTE-PROFESSOR READAPTADO ADM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11305, "Atividade": "DRE - APOIO ADMINISTRATIVO DA GESTÃO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11306, "Atividade": "DRE - APOIO ADMINISTRATIVO DA GESTÃO READAPTADO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11307, "Atividade": "DRE- PROTOCOLISTA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11308, "Atividade": "DRE - PROTOCOLISTA READAPTADO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11309, "Atividade": "DRE-APOIO PEDAGOGICO-PROFESSOR ED. ESP.", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11310, "Atividade": "READAPTADO\nDRE - APOIO PEDAGÓGICO - PROF. AEE READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11311, "Atividade": "ADM\nDRE - APOIO PEDAGÓGICO - PROF AEE READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11312, "Atividade": "NORM\nDRE - APOIO PEDAGÓGICO-ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11313, "Atividade": "DRE - PSICÓLOGO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11314, "Atividade": "DRE - ASSISTENTE SOCIAL", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11315, "Atividade": "DRE - POLÍCIA MILITAR", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11316, "Atividade": "DRE - LIDER DO NÚCLEO DE TEC-PROF.READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11317, "Atividade": "DRE-LIDER DO NÚCLEO DE TEC-PROF.READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11318, "Atividade": "DRE-CHEFE DO NUCLEO DE TECNOLOGIA-ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11319, "Atividade": "DRE-LÍDER DO NÚCLEO DE TEC-PROF.(C/VANTAGENS)", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11320, "Atividade": "DRE - PEDAGÓGICO C/ HAB. TI-PROFESSOR NORM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11321, "Atividade": "DRE - PEDAGÓGICO C/ HAB. TI-PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11322, "Atividade": "READAPTADO\nDRE - PEDAGÓGICO C/ HAB. TI-ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11323, "Atividade": "DRE-PEDAGOGICO COM HAB TI-PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11324, "Atividade": "DRE - COORD. REGIONAL PEDAGÓGICO- ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11325, "Atividade": "DRE-COORD. REG. PEDAGÓGICO- PROF.READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11326, "Atividade": "DRE-COORD. REG. PEDAGÓGICO- PROF.READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11327, "Atividade": "ADM\nDRE-COORD. REG PEDAGÓGICO- PROF.(C/VANTAGENS)", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11328, "Atividade": "DRE - ASSESSOR DE GESTÃO PEDAGÓGICA -", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11329, "Atividade": "ESPECIALISTA\nDRE-ASSESSOR COORD PEDAGÓGICA-", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11330, "Atividade": "PROF.READAPTADO\nDRE-ASSESSOR DE GEST PEDAGOGICA-PROF.", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11331, "Atividade": "READAPTA ADM\nDRE-ASSESSOR COORD PEDAGÓGICA-", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11332, "Atividade": "PROF.(S/VANTAGENS)\nDRE - TAP - PROFESSOR READAPTADO NORMAL", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11333, "Atividade": "DRE - TAP - PROFESSOR READAPTADO ADM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11334, "Atividade": "DRE - TAP - PROFESSOR (COM AS VANTAGENS)", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11335, "Atividade": "DRE - TAP - ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11336, "Atividade": "DRE - LÍDER NÚCLEO CURRÍ AV.PROG-ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11337, "Atividade": "DRE-LIDER NUCLEO CURRI AV.PROG-PROF.READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11338, "Atividade": "DRE-LIDER NUCLEO CURRI AV.PROG-PROF.READ S/VANT", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11339, "Atividade": "DRE-LIDER NUCLEO CURR AV E PROG-PROF C/", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11340, "Atividade": "VANTAGENS\nDRE - TÉCNICO REF. TEMPO INTEGRAL - ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11341, "Atividade": "DRE-TECNICO REF TEMPO INTEGRAL-PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11342, "Atividade": "READAPTADO\nDRE - TÉCNICO REF. TEMPO INTEGRAL - PROF.", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": null, "Atividade": "READAPTADO", "Grupo Seduc": null, "Adicional de Férias Automático": null, "Atividade de Docência": null },
+          { "Codigo": 11343, "Atividade": "DRE-TECNICO TEMPO INTEGRAL-PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11344, "Atividade": "DRE-TECNICO PROG E MODALIDADES-ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11345, "Atividade": "DRE-TECNICO PROG E MODALIDADES-PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11346, "Atividade": "READAPTADO\nDRE-TECNICO PROG E MODALIDADES-PROF READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11347, "Atividade": "S/VANT\nDRE - TEC PROGAMAS E MOD - PROF. C/VANTAGENS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11348, "Atividade": "DRE - TÉCNICO REF. ALFABETIZA - ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11349, "Atividade": "DRE-TECNICO ALFABETIZA-PROFESSOR READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11350, "Atividade": "DRE-TECNICO ALFABETIZA-PROFESSOR READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11351, "Atividade": "S/VANTAGENS\nDRE-TECNICO ACOMPANHAMENTO ADM - PROF. READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11352, "Atividade": "S/VANT\nDRE-TECNICO ACOMPANHAMENTO ADM - PROF.", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11353, "Atividade": "READAPTADO\nDRE-APOIO ADM INFRA-LOGÍSTICA-OPERAC", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11354, "Atividade": "READAPTADO\nDRE - APOIO ADM INFRA-LOGÍSTICA - ASSISTENTE", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11355, "Atividade": "ADM.\nDRE - TÉCNICO REF. ENGENHARIA CIVIL", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11356, "Atividade": "DRE - TÉCNICO REF. ENGENHARIA ELÉTRICA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11357, "Atividade": "DRE-COORD REG ADM-FINANCEIRO - PROF S/", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11358, "Atividade": "VANTAGENS\nDRE - COORD. REG. ADM-FINANCEIRO - ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11359, "Atividade": "DRE-COORD REG ADM-FINANCEIRO - ASSISTENTE", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11360, "Atividade": "ADM\nDRE-COORD. REG. ADM - FINANCEIRO - TÉCNICO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11361, "Atividade": "DRE-APOIO ADM FINANCEIRO- ASSISTENTE ADM", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11362, "Atividade": "DRE - TÉCNICO DE REF. DE LOTAÇÃO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11363, "Atividade": "DRE - TÉCNICO DE REF. DE LOTAÇÃO READAPTADO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11364, "Atividade": "DRE - TÉCNICO REF. GESTÃO DA VIDA FUNCIONAL", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11365, "Atividade": "DRE-TECNICO REF GEST DA VIDA FUNC READAPTADO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11366, "Atividade": "ADM\nDRE - TÉCNICO REF. ALIMENTAÇÃO ESCOLAR", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11367, "Atividade": "DRE - TÉCNICO REF. TRANSPORTE ESCOLAR", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11368, "Atividade": "DRE-TÉCNICO REF. TRANSP. ESCOLAR-APOIO READAP", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11369, "Atividade": "DRE- CHEFE DO NUCLEO RECURSOS DESCEN (NRD)", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11370, "Atividade": "DRE - TECNICO REF. CENSO E MATRICULA-", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11371, "Atividade": "ESPECIALISTA\nDRE - TÉCNICO CENSO E MATRÍCULA-PROF READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11372, "Atividade": "DRE - TÉCNICO CENSO E MATRÍCULA - PROF.READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11373, "Atividade": "ADM\nDRE - TÉCNICO CENSO E MATRÍCULA-ASSIS ADMINIST", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11374, "Atividade": "DRE-TECNICO ACOMPANHAMENTO ADM-ESP EM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11375, "Atividade": "EDUCAÇÃO\nDRE-TECNICO ACOMPANHAMENTO ADM - ASSISTENTE", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11376, "Atividade": "ADM\nDRE - TÉCNICO DE ACOMPANHAMENTO ADM -", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11377, "Atividade": "PROFESSOR\nDRE-LIDER DE NUCLEO RECURSOS HUMANOS-", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11378, "Atividade": "ESPECIALISTA\nDRE-LIDER DE NUCLEO REC HUMANOS - PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11379, "Atividade": "READAPTADO\nDRE-LIDER DE NUCLEO REC HUMANOS - PROF READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11380, "Atividade": "S/VANT\nDRE-LIDER DE NUCLEO REC HUMANOS - PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11381, "Atividade": "S/VANTAGENS\nDRE-APOIO ADSMISNTRATIVO FINANCEIRO-AUXILIAR", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11382, "Atividade": "DRE - TECNICO DE REF. DE LOTACAO - ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11383, "Atividade": "DRE-TECNICO ACOMPANHAMENTO ADM - APOIO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": null, "Atividade": "READAP", "Grupo Seduc": null, "Adicional de Férias Automático": null, "Atividade de Docência": null },
+          { "Codigo": 11384, "Atividade": "DRE-TECNICO ACOMPANHAMENTO ADM - TECNICO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11385, "Atividade": "EM GESTAO\nDRE-ASSESSOR GESTAO PEDAGOGICO-APOIO READAP", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11386, "Atividade": "DRE-TECNICO DE REF. DE POLIT DE LEIT.-PROF.", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11387, "Atividade": "READAP\nDRE-TECNICO REF. TRANSP. ESCOLAR-PROF. READAP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11388, "Atividade": "DRE-LIDER DE NUCLEO - NSE ASSIST. ADM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11389, "Atividade": "DRE-ASSESSOR DE GESTAO PEDAGÓGICO - PROF.", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11390, "Atividade": "NORMAL\nDRE-TÉCNICO ALFABETIZA - PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11391, "Atividade": "DRE - TÉCNICO REF. POLÍTICAS DE LEITURA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11392, "Atividade": "DRE-LIDER NUCLEO CURR E FORMAÇÃO-ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11393, "Atividade": "DRE-LIDER NUCLEO CURR E FORMAÇÃO-PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11394, "Atividade": "READAPTADO\nDRE-LIDER NUCLEO CURR E FORMAÇÃO-PROF READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11395, "Atividade": "S/VANT\nDRE-LIDER NUCLEO CURR E FORMAÇÃO-PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11396, "Atividade": "DRE - PROFESSOR FORMADOR MATEMÁTICA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11397, "Atividade": "DRE - PROFESSOR FORMADOR LINGUAGEM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11398, "Atividade": "DRE - PROFESSOR FORMADOR CIÊNCIAS HUMANAS", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11399, "Atividade": "DRE - PROFESSOR FORMADOR CIENCIAS DA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11400, "Atividade": "NATUREZA\nDRE - FORMADOR ALFABETIZA - PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11401, "Atividade": "DRE - PROFESSOR DESPORTO ESCOLAR (COM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11402, "Atividade": "VANTAGENS)\nDRE-COORD REGIONAL INFRA-LOGISTICA PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11403, "Atividade": "DRE-COORD REGIONAL INFRA-LOGISTICA ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11404, "Atividade": "DRE-COORD REGIONAL INFRA-LOGISTICA ASSISTENTE", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11405, "Atividade": "ADM\nDRE-COORDENADOR REGIONAL INFRA-LOGISTICA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11406, "Atividade": "TECNICO\nDRE-APOIO ADM. INFRA-LOGISTICA-AUX.OPERACIONAL", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11407, "Atividade": "DRE-LIDER DE NUCLEO RECURSOS HUMANOS-", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11408, "Atividade": "ASSISTENT ADM\nDRE - APOIO ADM DA GESTÃO - PROF READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11409, "Atividade": "NORMAL\nDRE - APOIO ADM DA GESTÃO - PROF READ ADM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11410, "Atividade": "DRE - FORMADOR ALFABETIZA - ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11411, "Atividade": "DRE-COORD REG ADM-FINAN - ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11412, "Atividade": "READATADO\nDRE - COORD REG ADM-FINANCEIRO - PROF READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11413, "Atividade": "NORM\nDRE - COORD REG ADM-FINANCEIRO - PROF READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11414, "Atividade": "ADM\nDRE - APOIO PEDAGOGICO - PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11415, "Atividade": "DRE-COORD. REG. ADM-FINANCEIRO-PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11416, "Atividade": "READAPTADO\nDRE - COORDENADOR REG INFRA-LOGÍSTICA PROF", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11417, "Atividade": "READAP\nDRE - TECNICO CENSO E MATRICULA - APOIO READAP", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11418, "Atividade": "DRE-PROFESSOR DESPORTO ESCOLAR - READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11419, "Atividade": "DRE-PROFESSOR FORMADOR LINGUAGEM -", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11420, "Atividade": "READAPTADO\nDRE - DIRIGENTE PROFESSOR READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": true, "Atividade de Docência": true },
+          { "Codigo": 11421, "Atividade": "DRE-TECNICO REF SOME - PROFESSOR", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11422, "Atividade": "DRE-TECNICO REF SOME - ESPECIALISTA", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11423, "Atividade": "DRE-TECNICO REF GEST DA VIDA FUNC READAPTADO", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11424, "Atividade": "PROF\nDRE - TECNICO REF. CENSO E MATRICULA - ADM", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11425, "Atividade": "DRE- APOIO OPERACIONAL - VIGIA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11426, "Atividade": "DRE- APOIO OPERACIONAL - MOTORISTA", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11427, "Atividade": "DRE- APOIO OPERACIONAL - SERVENTE", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11428, "Atividade": "DRE-APOIO ADM FINANCEIRO- TEC. GESTAO", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11429, "Atividade": "DRE TEC CENSO E MATRICULA GESTAO GOV", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11430, "Atividade": "DRE TEC GESTAO PUBLICA CIENCIAS", "Grupo Seduc": "ADMINISTRATIVO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11431, "Atividade": "CONTABES\nDRE TEC. LOTACAO PROF. S/VANT", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false },
+          { "Codigo": 11432, "Atividade": "DRE-ASSESSOR COORD PEDAG - PROF. READAP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11433, "Atividade": "DRE - APOIO PEDAG PROF AEE READAP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11434, "Atividade": "DRE - TAP PROF READAPT NORM", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11435, "Atividade": "DRE - TECNICO PROG E MOD - PROF. READP", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11436, "Atividade": "DRE-TECNICO ALFABETIZA - PROF READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11437, "Atividade": "DRE - TEC ACOMP - ADM - PROF. READAPT", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 11438, "Atividade": "DRE - APOIO ADM DA GESTÃO PROF READ", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": true },
+          { "Codigo": 113010, "Atividade": "NORM\nDRE - APOIO PEDAGÓGICO-PROFESSOR EDUC.ESPEC.", "Grupo Seduc": "MAGISTERIO", "Adicional de Férias Automático": false, "Atividade de Docência": false }
+        ];
+
+        const funcionariosDb = [];
+        let codigosAutomaticos = [];
+
+        const loadFuncionarioData = (data) => {
+            funcionariosDb.length = 0;
+            const validData = data.filter(item => item && item.Codigo != null);
+            funcionariosDb.push(...validData);
+            codigosAutomaticos = funcionariosDb
+                // Chave e valor corrigidos para corresponder ao JSON
+                .filter(func => func['Adicional de Férias Automático'] === true)
+                // Chave corrigida para corresponder ao JSON
+                .map(func => String(func['Codigo']));
+            console.log("Dados de funcionários carregados:", funcionariosDb.length, "registros.");
+        };
+
+        const parseDateAsUTC = (dateString) => {
+            if (!dateString) return null;
+            const [year, month, day] = dateString.split('-').map(Number);
+            return new Date(Date.UTC(year, month - 1, day));
+        };
+
+        const buscarFuncionario = (codigo) => {
+            const codigoStr = String(codigo).trim();
+            // Chave corrigida para corresponder ao JSON
+            return funcionariosDb.find(func => String(func['Codigo']).trim() === codigoStr);
+        };
+
+        const calcularFerias = (dataInicio, dataSolicitacao, funcionario) => {
+            // Chaves corrigidas para corresponder ao JSON
+            const codigo = String(funcionario['Codigo']);
+            const atividade = String(funcionario['Atividade'] || '').toUpperCase();
+            const grupoSeduc = String(funcionario['Grupo Seduc'] || '').toUpperCase();
+
+            const isMagisterio = atividade.includes("PROFESSOR") || atividade.includes("PROF") || atividade.includes("ESPECIALISTA") || grupoSeduc.includes("MAGISTERIO");
+
+            if (atividade.includes("AGUARD APOSENT")) {
+                return { availableVacationDays: 0, direitoAdquirido: false, dataFinalPeriodo: null, isAutomatic: false, isAGA: true, isMagisterio };
+            }
+
+            if (codigosAutomaticos.includes(codigo)) {
+                const days = isMagisterio ? 45 : 30;
+                return { availableVacationDays: days, direitoAdquirido: true, dataFinalPeriodo: null, isAutomatic: true, isMagisterio: isMagisterio };
+            }
+
+            let monthsPassed = (dataSolicitacao.getUTCFullYear() - dataInicio.getUTCFullYear()) * 12;
+            monthsPassed -= dataInicio.getUTCMonth();
+            monthsPassed += dataSolicitacao.getUTCMonth();
+            if (dataSolicitacao.getUTCDate() < dataInicio.getUTCDate()) {
+                monthsPassed--;
+            }
+            monthsPassed = Math.max(0, monthsPassed);
+
+            const daysPerMonth = isMagisterio ? 3.75 : 2.5;
+            const maxDays = isMagisterio ? 45 : 30;
+            const availableVacationDays = Math.min(Math.floor(monthsPassed * daysPerMonth), maxDays);
+
+            const fimPeriodo = new Date(dataInicio);
+            fimPeriodo.setUTCFullYear(fimPeriodo.getUTCFullYear() + 1);
+            const direitoAdquirido = dataSolicitacao >= fimPeriodo;
+
+            return { availableVacationDays, direitoAdquirido, dataFinalPeriodo: fimPeriodo, isAutomatic: false, isMagisterio };
+        };
+
+        const modal = document.getElementById("resultModal");
+        const modalContainer = document.getElementById("modalContainer");
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalDynamicContent = document.getElementById('modalDynamicContent');
+        const codigoInput = document.getElementById("codigoFuncionario");
+        const inicioAquisitivoInput = document.getElementById("inicioAquisitivo");
+        const inicioFeriasInput = document.getElementById("inicioFerias");
+        const verificarBtn = document.getElementById("verificarBtn");
+        const limparBtn = document.getElementById("limparBtn");
+
+        const showModal = () => {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContainer.classList.remove('scale-95');
+            }, 10);
+        };
+        const hideModal = () => {
+            modal.classList.add('opacity-0');
+            modalContainer.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        };
+        const limparCampos = () => {
+            codigoInput.value = "";
+            inicioAquisitivoInput.value = "";
+            inicioFeriasInput.value = "";
+            hideModal();
+        };
+
+        const obterDadosDoForm = () => {
+            const codigo = codigoInput.value.trim();
+            const inicioPeriodoStr = inicioAquisitivoInput.value;
+            const inicioFeriasStr = inicioFeriasInput.value;
+            if (!codigo || !inicioPeriodoStr || !inicioFeriasStr) {
+                atualizarInterface(null, null, "Por favor, preencha todos os campos."); return null;
+            }
+            const dataInicio = parseDateAsUTC(inicioPeriodoStr);
+            const dataSolicitacao = parseDateAsUTC(inicioFeriasStr);
+            if (!dataInicio || !dataSolicitacao) {
+                atualizarInterface(null, null, "Uma das datas inseridas é inválida."); return null;
+            }
+            if (dataSolicitacao < dataInicio) {
+                atualizarInterface(null, null, "A data de início das férias não pode ser anterior ao período aquisitivo."); return null;
+            }
+            return { codigo, dataInicio, dataSolicitacao };
+        };
+
+        const atualizarInterface = (funcionario, resultadoCalculo, errorMessage = null) => {
+            let contentHTML = '';
+            if (errorMessage) {
+                contentHTML = `<div class="p-8 text-center"><h3 class="text-2xl font-bold text-yellow-400 mb-2">Atenção</h3><p class="text-gray-300">${errorMessage}</p></div>`;
+            } else {
+                const isSuccess = resultadoCalculo.direitoAdquirido || resultadoCalculo.isAutomatic;
+                const statusClass = isSuccess ? 'text-green-400' : 'text-rose-400';
+                let statusMessage, detailsHTML = '';
+
+                // Chaves corrigidas para corresponder ao JSON
+                const infoFuncionarioHTML = `
+                    <div class="text-left border-t border-b border-gray-700 my-4 py-4 px-2 space-y-2">
+                        <p class="text-sm"><strong class="text-gray-400 font-medium">CÓDIGO:</strong> ${(funcionario) ? funcionario['Codigo'] : 'N/A'}</p>
+                        <p class="text-sm"><strong class="text-gray-400 font-medium">ATIVIDADE:</strong> ${(funcionario) ? funcionario['Atividade'] : 'N/A'}</p>
+                        <p class="text-sm"><strong class="text-gray-400 font-medium">GRUPO SEDUC:</strong> ${(funcionario) ? funcionario['Grupo Seduc'] : 'N/A'}</p>
+                    </div>
+                `;
+
+                if (resultadoCalculo.isAutomatic) {
+                    statusMessage = 'Direito Automático!';
+                    detailsHTML = `<p class="text-lg font-bold">Dias de férias disponíveis: ${resultadoCalculo.availableVacationDays}</p>`;
+                } else if (resultadoCalculo.isAGA) {
+                    statusMessage = 'NÃO TEM DIREITO (AGA)';
+                    detailsHTML = `<p class="text-lg font-bold">Dias de férias disponíveis: 0</p>`;
+                } else {
+                    const dataFinalFormatada = resultadoCalculo.dataFinalPeriodo.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                    statusMessage = isSuccess ? 'Direito Adquirido!' : 'Direito Não Adquirido';
+                    detailsHTML = `<p class="text-lg font-bold">Dias de férias disponíveis: ${resultadoCalculo.availableVacationDays}</p>
+                                   <p class="mt-2 text-gray-400">Fim do período aquisitivo: ${dataFinalFormatada}</p>`;
+                }
+
+                if (resultadoCalculo.isMagisterio) {
+                    detailsHTML += `<p class="text-xs text-indigo-400 mt-2">(Benefício de 45 dias aplicado - Magistério)</p>`;
+                }
+
+                contentHTML = `<div class="p-6 text-center">
+                                    <h3 class="text-2xl font-bold mb-2 ${statusClass}">${statusMessage}</h3>
+                                    <div class="space-y-2 text-gray-300">${detailsHTML}</div>
+                                    ${infoFuncionarioHTML}
+                               </div>`;
+            }
+            modalDynamicContent.innerHTML = contentHTML;
+            showModal();
+        };
+
+        verificarBtn.addEventListener('click', () => {
+            const dados = obterDadosDoForm();
+            if (!dados) return;
+            const funcionario = buscarFuncionario(dados.codigo);
+            if (!funcionario) {
+                atualizarInterface(null, null, "Funcionário não encontrado. Verifique o código digitado."); return;
+            }
+            const resultadoCalculo = calcularFerias(dados.dataInicio, dados.dataSolicitacao, funcionario);
+            atualizarInterface(funcionario, resultadoCalculo);
+        });
+        limparBtn.addEventListener('click', limparCampos);
+        closeModalBtn.addEventListener('click', hideModal);
+
+        // O carregamento agora é feito a partir dos dados incorporados quando a página é carregada.
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                loadFuncionarioData(embeddedData);
+            } catch (e) {
+                console.error("Erro ao carregar dados incorporados:", e);
+                atualizarInterface(null, null, "Ocorreu um erro crítico ao carregar a base de dados.");
+            }
+        });
+        // --- FIM DO CÓDIGO MODIFICADO ---
+    </script>
+</body>
+</html>
+
