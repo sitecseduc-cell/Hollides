@@ -4492,7 +4492,7 @@
         // O carregamento agora é feito a partir dos dados incorporados quando a página é carregada.
         document.addEventListener('DOMContentLoaded', () => {
             try {
-                loadFuncionarioData(embeddedData);
+                loadFuncionarioData(embeddedData[0]);
             } catch (e) {
                 console.error("Erro ao carregar dados incorporados:", e);
                 atualizarInterface(null, null, "Ocorreu um erro crítico ao carregar a base de dados.");
@@ -4502,5 +4502,6 @@
     </script>
 </body>
 </html>
+
 
 
